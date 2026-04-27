@@ -41,7 +41,7 @@ npx expo run:android
 
 La primera compilación tarda 5-15 minutos (Gradle).
 
-> ⚠️ Mobile aún no usa Supabase — guarda en AsyncStorage local. Migración pendiente.
+> Mobile usa Supabase con AsyncStorage como adaptador de sesión.
 
 ## Estructura
 

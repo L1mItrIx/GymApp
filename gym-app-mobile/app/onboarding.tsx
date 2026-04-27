@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Button, Card, Input, Label } from "@/components/ui";
-import { useApp } from "@/lib/store";
-import type { ExperienceLevel, Goal } from "@/lib/types";
+import { ensurePlan, getProfile, upsertProfile, type ProfileRow } from "@/lib/data";
+import { useAuth } from "@/components/AuthGate";
+
+type Goal = ProfileRow["goal"];
+type ExperienceLevel = ProfileRow["experience"];
 
 const GOALS: { id: Goal; label: string; desc: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: "hypertrophy",     label: "Ganar masa muscular", desc: "Volumen medio-alto, 8-15 reps", icon: "flame" },
@@ -24,17 +27,53 @@ const DAYS_OPTIONS = [2, 3, 4, 5, 6];
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const setProfile = useApp((s) => s.setProfile);
+  const { session } = useAuth();
 
   const [name, setName] = useState("");
   const [goal, setGoal] = useState<Goal>("hypertrophy");
   const [experience, setExperience] = useState<ExperienceLevel>("beginner");
   const [daysPerWeek, setDaysPerWeek] = useState(4);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = () => {
-    if (!name.trim()) return;
-    setProfile({ name: name.trim(), goal, experience, daysPerWeek, onboarded: true });
-    router.replace("/dashboard");
+  useEffect(() => {
+    if (!session) {
+      router.replace("/(auth)/login");
+      return;
+    }
+    (async () => {
+      const existing = await getProfile(session.user.id).catch(() => null);
+      if (existing) {
+        router.replace("/(app)/today");
+        return;
+      }
+      if (session.user.user_metadata?.full_name) {
+        setName(session.user.user_metadata.full_name as string);
+      } else if (session.user.email) {
+        setName(session.user.email.split("@")[0]);
+      }
+    })();
+  }, [session, router]);
+
+  const submit = async () => {
+    if (!session || !name.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await upsertProfile({
+        id: session.user.id,
+        name: name.trim(),
+        goal,
+        experience,
+        days_per_week: daysPerWeek,
+      });
+      await ensurePlan(session.user.id);
+      router.replace("/(app)/today");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -132,8 +171,10 @@ export default function OnboardingScreen() {
         </View>
       </Card>
 
-      <Button onPress={submit} disabled={!name.trim()}>
-        Continuar
+      {error && <Text className="text-red-400 text-xs px-1">{error}</Text>}
+
+      <Button onPress={submit} disabled={!name.trim() || saving}>
+        {saving ? "Guardando..." : "Continuar"}
       </Button>
 
       <View className="h-8" />

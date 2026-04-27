@@ -143,20 +143,34 @@ export default function AgendaPage() {
         {plan.days.map((d, i) => {
           const isActive = activeDow === i;
           const sets = d.exercises.reduce((a, e) => a + e.sets, 0);
+          const baseColor = d.is_rest
+            ? "bg-emerald-500/10 ring-emerald-500/30"
+            : "bg-indigo-500/10 ring-indigo-500/30";
+          const activeRing = isActive
+            ? d.is_rest
+              ? "ring-emerald-400 ring-2"
+              : "ring-indigo-400 ring-2"
+            : "";
           return (
             <button
               key={d.id}
               onClick={() => setActiveDow(i)}
               className={[
-                "p-2 rounded-md ring-1 ring-inset transition text-left",
-                isActive ? "bg-indigo-500/15 ring-indigo-500/40" : "bg-[var(--surface)] ring-[var(--border)] hover:ring-white/20",
+                "p-2 rounded-md ring-1 ring-inset transition text-left hover:brightness-125",
+                baseColor,
+                activeRing,
               ].join(" ")}
             >
-              <div className="text-[10px] uppercase tracking-wider text-neutral-400">
+              <div
+                className={[
+                  "text-[10px] uppercase tracking-wider",
+                  d.is_rest ? "text-emerald-300/80" : "text-indigo-300/80",
+                ].join(" ")}
+              >
                 {DAY_LABELS[i].slice(0, 3)}
               </div>
               {d.is_rest ? (
-                <div className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
+                <div className="mt-1 flex items-center gap-1 text-xs text-emerald-300">
                   <Coffee className="size-3.5" /> Descanso
                 </div>
               ) : (
@@ -164,7 +178,9 @@ export default function AgendaPage() {
                   <div className="mt-1 text-xs font-medium text-neutral-100 truncate">
                     {d.name ?? "Entreno"}
                   </div>
-                  <div className="mt-0.5 text-[10px] text-neutral-500">{sets} series</div>
+                  <div className="mt-0.5 text-[10px] text-neutral-400">
+                    {sets > 0 ? `${sets} series` : "Sin ejercicios"}
+                  </div>
                 </>
               )}
             </button>
@@ -172,22 +188,49 @@ export default function AgendaPage() {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-5" key={day.id}>
         <div className="space-y-5">
           <Card>
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold">{DAY_LABELS[activeDow]}</h2>
-              <button
-                onClick={toggleRest}
-                className={[
-                  "px-3 py-1.5 text-xs rounded-md ring-1 ring-inset",
-                  day.is_rest
-                    ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
-                    : "bg-white/5 text-neutral-300 ring-[var(--border)] hover:ring-white/20",
-                ].join(" ")}
-              >
-                {day.is_rest ? "Día de descanso (cambiar a entreno)" : "Marcar como descanso"}
-              </button>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-semibold">{DAY_LABELS[activeDow]}</h2>
+                <span
+                  className={[
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] ring-1 ring-inset",
+                    day.is_rest
+                      ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/30"
+                      : "bg-indigo-500/10 text-indigo-300 ring-indigo-500/30",
+                  ].join(" ")}
+                >
+                  {day.is_rest ? <Coffee className="size-3" /> : <Dumbbell className="size-3" />}
+                  {day.is_rest ? "Descanso" : "Entreno"}
+                </span>
+              </div>
+
+              <div className="flex bg-[var(--surface-2)] rounded-md ring-1 ring-inset ring-[var(--border)] p-1">
+                <button
+                  onClick={() => !day.is_rest || toggleRest()}
+                  className={[
+                    "px-3 py-1 text-xs rounded transition",
+                    !day.is_rest
+                      ? "bg-indigo-500 text-white"
+                      : "text-neutral-400 hover:text-neutral-100",
+                  ].join(" ")}
+                >
+                  Entreno
+                </button>
+                <button
+                  onClick={() => day.is_rest || toggleRest()}
+                  className={[
+                    "px-3 py-1 text-xs rounded transition",
+                    day.is_rest
+                      ? "bg-emerald-500 text-white"
+                      : "text-neutral-400 hover:text-neutral-100",
+                  ].join(" ")}
+                >
+                  Descanso
+                </button>
+              </div>
             </div>
 
             {!day.is_rest && (

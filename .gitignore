@@ -24,9 +24,11 @@ ios/
 # Editor / OS
 .vscode/
 .idea/
+.claude/
 .DS_Store
 desktop.ini
 Thumbs.db
+/package-lock.json
 
 # Logs
 *.log

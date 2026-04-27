@@ -57,14 +57,35 @@ export default function TodayPage() {
   const dow = todayDayOfWeek();
   const today = plan.days.find((d) => d.day_of_week === dow);
   const dateISO = todayDateISO();
+  const isRest = !today || today.is_rest;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      <div
+        className={[
+          "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs ring-1 ring-inset mb-3",
+          isRest
+            ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/30"
+            : "bg-indigo-500/10 text-indigo-300 ring-indigo-500/30",
+        ].join(" ")}
+      >
+        {isRest ? <Coffee className="size-3.5" /> : <Dumbbell className="size-3.5" />}
+        {isRest ? "Día de descanso" : `Día de entreno · ${today?.name ?? "Sin nombre"}`}
+      </div>
+
       <h1 className="text-3xl font-semibold tracking-tight">
-        Hola, {profileName}
+        {isRest ? `Descansa hoy, ${profileName}` : `A entrenar, ${profileName}`}
       </h1>
       <p className="text-sm text-neutral-400 mt-1">
         Hoy es <span className="text-neutral-200">{DAY_NAMES[dow]}</span>
+        {isRest
+          ? " · sin sesión programada"
+          : today?.focus && today.focus.length > 0
+          ? ` · enfocas ${today.focus
+              .slice(0, 3)
+              .map((m) => MUSCLE_LABELS[m as keyof typeof MUSCLE_LABELS])
+              .join(", ")}`
+          : ""}
       </p>
 
       <div className="grid md:grid-cols-[1fr_320px] gap-5 mt-6">

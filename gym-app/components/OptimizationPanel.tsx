@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, AlertCircle, BarChart3 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, AlertCircle, BarChart3, Check } from "lucide-react";
 import { MUSCLE_LABELS } from "@/lib/muscles";
 import type { OptimizationReport } from "@/lib/optimization";
 import { STATUS_STYLES } from "@/lib/volume";
@@ -91,12 +91,19 @@ export function OptimizationPanel({ report }: { report: OptimizationReport }) {
                       </span>
                     ))}
                   </div>
-                  <span className={`ml-auto text-[11px] ${restOk ? "text-emerald-400" : "text-red-400"}`}>
-                    {m.frequency < 2
-                      ? "—"
-                      : m.minRestHours >= 48
-                      ? `${Math.round(m.minRestHours)} h descanso ✓`
-                      : `${Math.round(m.minRestHours)} h descanso ⚠`}
+                  <span className={`ml-auto inline-flex items-center gap-1 text-[11px] ${restOk ? "text-emerald-400" : "text-red-400"}`}>
+                    {m.frequency < 2 ? (
+                      "—"
+                    ) : (
+                      <>
+                        {Math.round(m.minRestHours)} h descanso
+                        {m.minRestHours >= 48 ? (
+                          <Check className="size-3" />
+                        ) : (
+                          <AlertTriangle className="size-3" />
+                        )}
+                      </>
+                    )}
                   </span>
                 </div>
               </li>
