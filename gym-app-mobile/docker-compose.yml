@@ -1,0 +1,19 @@
+services:
+  android-build:
+    build: .
+    container_name: gym-app-android-build
+    volumes:
+      # Código del proyecto
+      - .:/app
+      # Persistir caches de Gradle entre runs (build mucho más rápido en la 2da vez)
+      - gradle-cache:/root/.gradle
+      - android-build-cache:/app/android/.gradle
+    environment:
+      - GRADLE_OPTS=-Dorg.gradle.daemon=false -Xmx4g
+    # Por defecto compila debug. Override:
+    #   docker compose run --rm android-build ./gradlew assembleRelease
+    command: ["./gradlew", "assembleDebug", "--no-daemon", "--stacktrace"]
+
+volumes:
+  gradle-cache:
+  android-build-cache:
